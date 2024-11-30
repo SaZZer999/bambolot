@@ -5,7 +5,7 @@ from player import Player
 from meteor import Meteor
 from flame1 import Flame
 from gold import Gold
-
+1
 # Ініціалізація Pygame та музичного модуля
 pygame.init()
 pygame.mixer.init()
