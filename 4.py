@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import os
 from player import Player
 from meteor import Meteor
 from flame1 import Flame
@@ -83,7 +84,18 @@ menu_background = pygame.transform.scale(menu_background, (window_width, window_
 game_over_background = pygame.image.load("image/menu/game_over/game_over.png").convert()
 game_over_background = pygame.transform.scale(game_over_background, (window_width, window_height))  # Змінюємо розмір
 
+# Завантаження фону для екрану "score"
+menu_score_background = pygame.image.load("image/menu/score/menu_score_background.png").convert()
+menu_score_background = pygame.transform.scale(menu_score_background, (window_width, window_height))
 
+# Завантаження фону для кнопки "Exit"
+score_exit_hover = pygame.image.load("image/menu/score/score_exit_hover.png").convert_alpha()
+score_exit_hover = pygame.transform.scale(menu_score_background, (window_width, window_height))
+# Координати кнопки виходу
+exit_button_rect = pygame.Rect(215, 820, 300, 48)
+
+# Шлях до файлу з результатами
+score_file_path = "high_scores.txt"
 
 # Новий розмір для кнопок
 button_width = 720
@@ -326,6 +338,81 @@ def is_overlapping(rect, groups):
 last_speed_increase_time = pygame.time.get_ticks()
 survival_timer = pygame.time.get_ticks()
 
+#результати
+def save_high_scores(score):
+    # Зчитуємо поточні результати з файлу
+    if os.path.exists(score_file_path):
+        with open(score_file_path, 'r') as file:
+            high_scores = [int(line.strip()) for line in file.readlines()]
+    else:
+        high_scores = []
+
+    # Додаємо новий результат
+    high_scores.append(score)
+
+    # Сортуємо і зберігаємо лише топ 5 результатів
+    high_scores = sorted(high_scores, reverse=True)[:5]
+
+    # Записуємо нові результати у файл
+    with open(score_file_path, 'w') as file:
+        for score in high_scores:
+            file.write(f"{score}\n")
+
+
+def load_high_scores():
+    # Зчитуємо високі результати з файлу
+    if os.path.exists(score_file_path):
+        with open(score_file_path, 'r') as file:
+            high_scores = [int(line.strip()) for line in file.readlines()]
+    else:
+        high_scores = []
+    return high_scores
+
+
+
+# Функція для відображення меню результатів
+def draw_score_menu():
+    global window
+    window.blit(menu_score_background, (0, 0))  # Відображаємо фон меню
+
+    # Зчитуємо найкращі результати
+    high_scores = load_high_scores()
+
+    # Виводимо найкращі результати
+    draw_text("Топ 5 Результатів", font, WHITE, window, window_width // 2, window_height // 4)
+
+    for i, score in enumerate(high_scores):
+        draw_text(f"{i + 1}. {score}", font, WHITE, window, window_width // 2, window_height // 4 + 50 + i * 40)
+
+    # Координати для кнопки
+    button_x = window_width // 2 - score_exit_hover.get_width() // 2
+    button_y = window_height // 2 + 200
+
+    # Додаємо червону рамку навколо кнопки
+    pygame.draw.rect(window, (255, 0, 0), (
+    button_x - 5, button_y - 5, score_exit_hover.get_width() + 10, score_exit_hover.get_height() + 10), 3)
+
+    # Отримуємо координати миші
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+    # Перевіряємо, чи наводиться мишка на кнопку
+    if (button_x < mouse_x < button_x + score_exit_hover.get_width() and
+            button_y < mouse_y < button_y + score_exit_hover.get_height()):
+        window.blit(score_exit_hover, (button_x, button_y))  # Підсвічуємо кнопку
+
+
+# Функція для обробки подій на меню результатів
+def handle_score_menu_events():
+    global game_state
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if (window_width // 2 - score_exit_hover.get_width() // 2 < mouse_x < window_width // 2 + score_exit_hover.get_width() // 2 and
+                window_height // 2 + 200 < mouse_y < window_height // 2 + 200 + score_exit_hover.get_height()):
+                game_state = "menu"  # Переходимо назад в основне меню
 
 
 # Основний цикл
@@ -348,8 +435,10 @@ def main():
             update_game_logic()
             draw_game()
             create_life(score)
+
         elif game_state == "records":
-            draw_records()
+            draw_score_menu()  # Викликаємо функцію для відображення меню з результатами
+            handle_score_menu_events()
         elif game_state == "game_over":
             draw_game_over()
 
@@ -420,7 +509,9 @@ def update_game_logic():
     # Клавіші для руху гравця
     keys = pygame.key.get_pressed()
     is_moving = keys[pygame.K_UP]
-
+    if not os.path.exists(score_file_path):
+        with open(score_file_path, 'w') as file:
+            file.write("")  # Порожній файл
     if game_state == "game_over":
         return  # Якщо гра закінчена, нічого не оновлюється
 
@@ -587,10 +678,6 @@ def draw_menu():
         if active_zone.collidepoint(mouse_pos):
             window.blit(button_data["hover"], button_data["rect"].topleft)
 
-# Малювання рекордів
-def draw_records():
-    window.fill(GRAY)
-    draw_text("Рекорди", font, WHITE, window, window_width // 2, 150)
 
 # Функція game over
 def game_over():

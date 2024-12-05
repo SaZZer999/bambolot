@@ -6,7 +6,7 @@ class Meteor(pygame.sprite.Sprite):
         super().__init__()
 
         # Масштабоване зображення
-        self.original_image = pygame.transform.scale(image, (90, 90))  # Масштабування зображення
+        self.original_image = pygame.transform.scale(image, (80, 80))  # Масштабування зображення
         self.image = self.original_image
         self.mask = pygame.mask.from_surface(self.original_image)  # Маска для перевірки зіткнень
 
@@ -17,9 +17,9 @@ class Meteor(pygame.sprite.Sprite):
         self.window_height = window_height
 
         # Обертання
-        self.rotation_angle = 0
-        self.rotation_direction = random.choice([-1, 1])  # Напрямок обертання (вліво або вправо)
-        self.rotation_speed = random.uniform(0.05, 0.1) * self.rotation_direction  # Швидкість обертання
+        #self.rotation_angle = 0
+        #self.rotation_direction = random.choice([-1, 1])  # Напрямок обертання (вліво або вправо)
+        #self.rotation_speed = random.uniform(0.05, 0.1) * self.rotation_direction  # Швидкість обертання
 
     def update(self):
         # Рух метеорита
@@ -27,14 +27,14 @@ class Meteor(pygame.sprite.Sprite):
         self.rect.x += self.speed_x
 
         # Обертання метеорита
-        self.rotation_angle += self.rotation_speed
-        self.image = pygame.transform.rotate(self.original_image, self.rotation_angle)
+        #self.rotation_angle += self.rotation_speed
+        #self.image = pygame.transform.rotate(self.original_image, self.rotation_angle)
 
         # Зберігаємо положення після обертання
-        self.rect = self.image.get_rect(center=self.rect.center)
+        #self.rect = self.image.get_rect(center=self.rect.center)
 
         # Оновлення маски після обертання (опціонально)
-        self.mask = pygame.mask.from_surface(self.image)
+        #self.mask = pygame.mask.from_surface(self.image)
 
         # Видалення метеорита, якщо він виходить за межі екрана
         if self.rect.y > self.window_height:
