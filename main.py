@@ -167,9 +167,23 @@ flame_move_images = [
     r"C:\Users\maksy\PycharmProjects\Game\image\flame\move\flame10.png"
 ]
 
+
 # Завантаження зображень
 life_icon = pygame.image.load("image/life/life.png").convert_alpha()
 life_icon = pygame.transform.scale(life_icon, (60, 60))  # Зменшене зображення
+
+# Завантаження фонів
+menu_score_background = pygame.image.load("image/menu/score/menu_score_background.png").convert()
+menu_score_background = pygame.transform.scale(menu_score_background, (window_width, window_height))
+
+menu_settings_background = pygame.image.load("image/menu/settings/menu_settings_background.png").convert()
+menu_settings_background = pygame.transform.scale(menu_settings_background, (window_width, window_height))
+
+score_exit_hover = pygame.image.load("image/menu/settings/settings_exit_hover.png").convert_alpha()
+score_exit_hover = pygame.transform.scale(score_exit_hover, (window_width, window_height))
+
+# Координати кнопки виходу
+exit_button_rect = pygame.Rect(215, 1090, 300, 48)
 
 #Створення об'єкта гравця
 player = Player(285, 840, "image/player/player1.png")
@@ -326,6 +340,40 @@ def is_overlapping(rect, groups):
 last_speed_increase_time = pygame.time.get_ticks()
 survival_timer = pygame.time.get_ticks()
 
+#Функція для відображення екрана рекордів
+def draw_records():
+    global window
+
+    # Відображення фону
+    window.blit(menu_score_background, (0, 0))
+
+    # Отримуємо координати миші
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+    # Перевіряємо, чи мишка наведена на кнопку "Exit"
+    if exit_button_rect.collidepoint(mouse_x, mouse_y):
+        window.blit(score_exit_hover, (0, 0))  # Відображаємо підсвітку кнопки
+
+#Функція для обробки подій на екрані рекордів
+def handle_records_events():
+    global game_state
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:  # Клік миші
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            print(f"Mouse clicked at: {mouse_x}, {mouse_y}")  # Діагностика кліку
+
+            # Перевіряємо, чи мишка натиснута на кнопку виходу
+            if exit_button_rect.collidepoint(mouse_x, mouse_y):
+                print("Exit button clicked!")  # Діагностика для перевірки кнопки
+                game_state = "menu"  # Змінюємо стан гри
+                pygame.display.flip()  # Миттєве оновлення екрана
+                print(f"Game state changed to: {game_state}")  # Перевірка стану
+                return  # Припиняємо обробку подій, щоб уникнути дублювання
+
 
 
 # Основний цикл
@@ -340,16 +388,16 @@ def main():
     last_speed_increase_time = pygame.time.get_ticks()
 
     while True:
-        handle_events()      # Обробка подій
-        update_game_state()  # Оновлення стану гри
         if game_state == "menu":
             draw_menu()
+            handle_menu_events()  # Викликаємо функцію без аргументів
         elif game_state == "playing":
             update_game_logic()
             draw_game()
             create_life(score)
         elif game_state == "records":
             draw_records()
+            handle_records_events()  # Викликаємо функцію для обробки подій рекордів
         elif game_state == "game_over":
             draw_game_over()
 
@@ -393,21 +441,25 @@ def handle_game_over_events(event):
             sys.exit()
 
 # Обробка подій меню
-def handle_menu_events(event):
+def handle_menu_events():
     global game_state
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        mouse_pos = event.pos
-        for button_name, button_data in buttons.items():
-            if hover_zones[button_name].collidepoint(mouse_pos):
-                if button_name == "play":
-                    game_state = "playing"
-                elif button_name == "score":
-                    game_state = "records"
-                elif button_name == "settings":
-                    game_state = "settings"
-                elif button_name == "exit":
-                    pygame.quit()
-                    sys.exit()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = event.pos
+            for button_name, button_data in buttons.items():
+                if hover_zones[button_name].collidepoint(mouse_pos):
+                    if button_name == "play":
+                        game_state = "playing"
+                    elif button_name == "score":
+                        game_state = "records"
+                    elif button_name == "settings":
+                        game_state = "settings"
+                    elif button_name == "exit":
+                        pygame.quit()
+                        sys.exit()
 
 # Оновлення логіки гри
 def update_game_logic():
@@ -588,9 +640,9 @@ def draw_menu():
             window.blit(button_data["hover"], button_data["rect"].topleft)
 
 # Малювання рекордів
-def draw_records():
-    window.fill(GRAY)
-    draw_text("Рекорди", font, WHITE, window, window_width // 2, 150)
+# def draw_records():
+    #     window.fill(GRAY)
+#    draw_text("Рекорди55", font, WHITE, window, window_width // 2, 150)
 
 # Функція game over
 def game_over():
